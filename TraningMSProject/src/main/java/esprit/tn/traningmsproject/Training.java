@@ -2,6 +2,8 @@ package esprit.tn.traningmsproject;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 public class Training {
     private static final long serialVersionUID=6;
@@ -11,16 +13,20 @@ public class Training {
     private String title;
     private String level;
     private String description;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private TypeTraining typeTraining;
 
     public Training() {};
-    public Training(String title, String level, String description, TypeTraining typeTraining) {
+    public Training(String title, String level, String description, TypeTraining typeTraining, LocalDate startDate, LocalDate endDate) {
         this.title=title;
         this.level=level;
         this.description=description;
         this.typeTraining=typeTraining;
+        this.startDate=startDate;
+        this.endDate=endDate;
     }
 
     public TypeTraining getTypeTraining() {
@@ -59,4 +65,13 @@ public class Training {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public LocalDate getStartDate() { return startDate;}
+
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate;}
+
+    public LocalDate getEndDate() { return endDate;}
+
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate;}
+
 }

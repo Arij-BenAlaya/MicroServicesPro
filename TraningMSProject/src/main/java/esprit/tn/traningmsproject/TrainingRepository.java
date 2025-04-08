@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -30,5 +31,11 @@ public interface TrainingRepository extends JpaRepository<Training, Integer> {
 
     @Query("SELECT t.level, COUNT(t) FROM Training t GROUP BY t.level")
     List<Object[]> countTrainingsByLevel();
+
+    List<Training> findByStartDateBetween(LocalDate startDate, LocalDate endDate);
+
+    void deleteByEndDateBefore(LocalDate date);
+
+
 
 }

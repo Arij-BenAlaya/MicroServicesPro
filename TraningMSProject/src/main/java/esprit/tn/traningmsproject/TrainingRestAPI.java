@@ -1,6 +1,7 @@
 package esprit.tn.traningmsproject;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,9 @@ import org.springframework.core.io.InputStreamResource;
 
 
 import java.io.ByteArrayInputStream;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/trainings")
@@ -210,6 +213,103 @@ public class TrainingRestAPI {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(new InputStreamResource(bis));
+    }
+
+    @GetMapping("/between")
+    public ResponseEntity<?> getTrainingsBetweenDates(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+
+        List<Training> trainings = trainingService.getTrainingsBetweenDates(start, end);
+
+        if (trainings.isEmpty()) {
+            return new ResponseEntity<>("Aucune formation trouvée entre " + start + " et " + end, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(trainings, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/report/monthly")
+    public ResponseEntity<String> getMonthlyTrainingReport(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+
+        String report = trainingService.getMonthlyTrainingReport(start, end);
+
+        return new ResponseEntity<>(report, HttpStatus.OK);
+    }
+
+
+    @GetMapping(value = "/report/monthly/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> downloadMonthlyTrainingReportPDF(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+
+        ByteArrayInputStream bis = trainingService.generateMonthlyReportPDF(start, end);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=monthly-training-report.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+    }
+
+    @DeleteMapping("/delete-past")
+    public ResponseEntity<String> deletePastTrainings() {
+        String message = trainingService.deletePastTrainings();
+        return new ResponseEntity<>(message, HttpStatus.OK);
+    }
+
+
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStatistics() {
+        Map<String, Object> stats = trainingService.getStatistics();
+        return new ResponseEntity<>(stats, HttpStatus.OK);
+    }
+
+
+    @GetMapping(value = "/stats/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> exportStatsAsPDFWithCharts() {
+        ByteArrayInputStream bis = trainingService.generateStatsPDFWithCharts();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=training-stats-report.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+    }
+
+
+    @GetMapping(value = "/stats/monthly/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> exportMonthlyStatsPDF() {
+        ByteArrayInputStream bis = trainingService.exportMonthlyStatsToPDF();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=monthly-stats.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+    }
+
+
+    //*********************
+    @GetMapping("/current-month")
+    public ResponseEntity<?> getTrainingsStartingThisMonth() {
+        List<Training> trainings = trainingService.getTrainingsStartingThisMonth();
+
+        if (trainings.isEmpty()) {
+            return new ResponseEntity<>("Aucune formation ne démarre ce mois-ci.", HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(trainings, HttpStatus.OK);
     }
 
 
